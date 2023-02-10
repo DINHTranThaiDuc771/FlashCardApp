@@ -8,13 +8,13 @@ class Dictionary {
   // ignore: prefer_collection_literals
   final String name;
   final String description;
-  var dictionary = {};
+  List lstTerm = [];
   void addTerm( {required String term,required String definition}) {
-    dictionary = {...dictionary, term: definition};
+    lstTerm = [...lstTerm,Term(term: term,def:definition)];
   }
 
-  void removeTerm(String term) {
-    dictionary.remove(term);
+  void removeTerm(Term term) {
+    lstTerm.remove(term);
   }
 
   @override
@@ -29,4 +29,13 @@ class Dictionary {
   Dictionary copywith({int? id, required String name, required String description}) {
     return Dictionary(name: name, description: description);
   }
+}
+class Term {
+  final String term;
+  final String def;
+  const Term ({required this.term,required this.def});
+  Term copyWith (String term, String def){
+    return Term (term: term ,def : def);
+  }
+
 }

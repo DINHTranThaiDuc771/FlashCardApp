@@ -4,15 +4,22 @@ import 'form.dart';
 import 'dictPage.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-final myAppStateProvider =
-    StateNotifierProvider<DictNotifier, List<Dictionary>>((ref) {
-  return DictNotifier();
+final lstDictProvider =
+    StateNotifierProvider<DictListNotifier, List<Dictionary>>((ref) {
+  return DictListNotifier();
 });
 
-class DictNotifier extends StateNotifier<List<Dictionary>> {
-  DictNotifier() : super([]); //Initilize by an empty list
+class DictListNotifier extends StateNotifier<List<Dictionary>> {
+  DictListNotifier() : super([]); //Initilize by an empty list
   void addDictionary(Dictionary dict) {
     state = [...state, dict];
+    // Dont use state.add(dict), because it will not change anything. Cause the reference stay the same
+    //"You might be thinking, “Why didn’t you use .add and .remove here?” The reason is 
+    //that the state must be changed, resulting in oldState == newState as false, 
+    //but methods like .add mutates the list in place, so the equality is preserved. 
+    //That’s why both the addBook and removeBook methods have something like state = [...state, book], 
+    //which provides an entirely new list in the state."
+
   }
 
   void removeDictionary(Dictionary d) {
@@ -38,7 +45,7 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    List<Dictionary> myAppState = ref.watch(myAppStateProvider);
+    List<Dictionary> lstDict = ref.watch(lstDictProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -47,9 +54,8 @@ class MyApp extends ConsumerWidget {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final name = await showInformationDialog(context);
-          ref.read(myAppStateProvider.notifier).addDictionary(
+          ref.read(lstDictProvider.notifier).addDictionary(
               Dictionary(name: name!, description: "description"));
-          print(myAppState);
         },
         child: const Icon(Icons.add),
       ),
@@ -62,14 +68,14 @@ class DictListPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    List<Dictionary> myAppState = ref.watch(myAppStateProvider);
-    if (myAppState.isEmpty) {
+    List<Dictionary> lstDict = ref.watch(lstDictProvider);
+    if (lstDict.isEmpty) {
       return const Center(
         child: Text("No Dictionary yet"),
       );
     }
     return ListView(
-      children: [for (var dict in myAppState) CardItem(dict: dict)],
+      children: [for (var dict in lstDict) CardItem(dict: dict)],
     );
   }
 }
@@ -98,8 +104,10 @@ class CardItem extends StatelessWidget {
           splashColor: Colors.blue.withAlpha(30),
           onTap: () {
             // add open new page
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) =>  DictPage(dict: dictionary)));
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => DictPage(dict: dictionary)));
           },
           child: SizedBox(
             width: 300,

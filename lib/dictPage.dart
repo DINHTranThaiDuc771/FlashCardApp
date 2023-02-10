@@ -13,22 +13,39 @@ class DictPage extends StatefulWidget {
 }
 
 class _DictPageState extends State<DictPage> {
+  int _currentIndex = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body: ListView(
-        // scrollDirection: Axis.horizontal,
-        children: [
-          for (var entry in widget.dict.dictionary.entries)
-            TermCard(entry.key, entry.value)
-        ],
-      ),
+      body: widget.dict.lstTerm.isEmpty
+          ? Center(child: const Text('No term yet'))
+          : Column(
+              children: [
+                Center(
+                  child: TermCard(widget.dict.lstTerm[_currentIndex].term,
+                      widget.dict.lstTerm[_currentIndex].def),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                        onPressed: _showPreviousCard,
+                        child: Icon(Icons.navigate_before)),
+                    ElevatedButton(
+                        onPressed: _showNextCard,
+                        child: Icon(Icons.navigate_next))
+                  ],
+                )
+              ],
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final Map<String, String>? data = await showTermDefAnalog(context, widget.dict);
+          final Map<String, String>? data =
+              await showTermDefAnalog(context, widget.dict);
           setState(() {
-            widget.dict.addTerm(term : data!['term']!, definition: data!['definition']!);
+            widget.dict
+                .addTerm(term: data!['term']!, definition: data['definition']!);
           });
         },
         child: const Icon(Icons.add),
@@ -36,12 +53,27 @@ class _DictPageState extends State<DictPage> {
     );
   }
 
-  Future<Map<String,String>?> showTermDefAnalog(BuildContext context, dict) async {
+  _showNextCard() {
+    setState(() {
+      _currentIndex = _currentIndex + 1 >= widget.dict.lstTerm.length
+          ? widget.dict.lstTerm.length - 1
+          : _currentIndex + 1;
+    });
+  }
+
+  _showPreviousCard() {
+    setState(() {
+      _currentIndex = _currentIndex - 1 < 0 ? 0 : _currentIndex - 1;
+    });
+  }
+
+  Future<Map<String, String>?> showTermDefAnalog(
+      BuildContext context, dict) async {
     //showDialog<T?> return a Future<T> (an object type T that returned in the Fture)
     //that value is the value of Navigator.of(context).pop(value);
     //this Navigator.of(context).pop(value) will close dialog too,
     //value could be primitive data type, or be boxed in an OBJECT
-    return await showDialog<Map<String,String>>(
+    return await showDialog<Map<String, String>>(
         context: context,
         builder: (context) {
           return AlertDialog(
@@ -81,9 +113,9 @@ class _DictPageState extends State<DictPage> {
 }
 
 class TermCard extends StatelessWidget {
-  late final String term;
-  late final String definition;
-  TermCard(
+  final String term;
+  final String definition;
+  const TermCard(
     this.term,
     this.definition, {
     super.key,
@@ -128,8 +160,8 @@ final TextEditingController _textTermControleur = TextEditingController();
 final TextEditingController _textDefinitionControleur = TextEditingController();
 
 class TextFormFieldCustom extends StatelessWidget {
-  late TextEditingController controller;
-  TextFormFieldCustom({
+  final TextEditingController controller;
+  const TextFormFieldCustom({
     required this.controller,
     Key? key,
   }) : super(key: key);
